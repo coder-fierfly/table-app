@@ -31,7 +31,7 @@ export const getToken = (username, password, setToken, setMessage) => {
             })
             .catch(error => {
                 setMessage('Ошибка при выполнении запроса:', error.message);
-                reject(error); // Отклоняем promise в случае ошибки
+                reject(error);
             });
     })
 };
@@ -65,7 +65,8 @@ export const getData = (token, setTableData, setMessage) => {
                 resolve();
             })
             .catch(error => {
-                reject(error); // Отклоняем обещание в случае ошибки
+                setMessage('Ошибка при выполнении запроса:', error.message);
+                reject(error);
             });
     })
 };

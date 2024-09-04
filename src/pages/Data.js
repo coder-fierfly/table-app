@@ -7,15 +7,14 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 
 function Data({ logout }) {
-    const { token } = useContext(IterationContext);
+    const { token } = useContext(IterationContext); //токен
     const [loading, setLoading] = useState(true);  // загрузка
     const [message, setMessage] = useState(''); // сообщение в окне загрузки
-    const [tableData, setTableData] = useState([]);
-    const [isEditing, setIsEditing] = useState(null);
-    const [newRow, setNewRow] = useState({});
-    const [titleRow, setTitleRow] = useState({});
-    const [changeId, setChangeId] = useState(null);
-    const [error, setErr] = useState(false);
+    const [tableData, setTableData] = useState([]); // данные для таблицы
+    const [isEditing, setIsEditing] = useState(null); // хранение данных при редактировании
+    const [newRow, setNewRow] = useState({}); // данные при добавлении
+    const [titleRow, setTitleRow] = useState({}); // заголовки
+    const [changeId, setChangeId] = useState(null); // для редактируемой строки
 
     // Функция для создания нового пустого объекта
     const initializeNewRow = (f) => {
@@ -26,11 +25,11 @@ function Data({ logout }) {
         }, {});
         f(emptyRow);
     };
+
     const clearInitNewRow = () => {
         setNewRow({}); // Устанавливаем newRow в пустой объект
         initializeNewRow(setNewRow);
     };
-
 
     const handleEdit = (id) => {
         const rowToEdit = tableData.find(row => row.id === id);
@@ -52,12 +51,9 @@ function Data({ logout }) {
             }
         }
     };
-    function sleep(ms) {
-        return new Promise(resolve => setTimeout(resolve, ms));
-    }
 
     const checkData = () => {
-        const dateRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+        const dateRegex = /^\d{4}-(0\d|1[0-2])-(0[1-9]|[12]\d|3[0-1])T([01]\d|2[0-3]):([0-5]\d):([0-5]\d)\.\d{3}Z$/;
         if (Object.values(newRow).every(value => value !== null && value !== undefined && value !== '') &&
             dateRegex.test(newRow.companySigDate) && dateRegex.test(newRow.employeeSigDate)) {
             return true;
@@ -70,16 +66,13 @@ function Data({ logout }) {
         setLoading(true);
         if (checkData()) {
             try {
-                setErr(false);
                 await postChangeData(changeId, newRow, setMessage, token);
-                // await sleep(10000);
                 handleGetData();
             } finally {
                 setChangeId('')
                 setLoading(false);
             }
         } else {
-            setErr(true);
             setMessage("данные в форме не корректны")
             setLoading(true);
         }
@@ -92,16 +85,8 @@ function Data({ logout }) {
         });
     };
 
-    function generateUniqueId() {
-        const timestamp = Date.now(); // Получаем количество миллисекунд с 1 января 1970 года
-        const randomNum = Math.floor(Math.random() * 1000000); // Случайное число для уникальности
-        return `${timestamp}-${randomNum}`;
-    }
-
     const handleAddRow = async () => {
         if (checkData()) {
-            const newDataId = generateUniqueId();
-            const newData = [{ id: newDataId, ...newRow }];
             setLoading(true);
             try {
                 await postAddData(newRow, setMessage, token);
@@ -111,7 +96,6 @@ function Data({ logout }) {
             }
             clearInitNewRow();
         } else {
-            setErr(true);
             setMessage("данные в форме не корректны")
             setLoading(true);
         }
@@ -124,7 +108,6 @@ function Data({ logout }) {
         } finally {
             setLoading(false);
         }
-
     }
 
     useEffect(() => {
@@ -140,13 +123,11 @@ function Data({ logout }) {
     const handleClose = () => {
         setMessage("")
         setLoading(false);
-        setErr(false);
     };
-
 
     return (
         <div className='main-auth-group'>
-            {loading ? <div> <Message isOpen={loading} isError={error} text={message} onClose={handleClose} /></div> : <>
+            {loading ? <div> <Message isOpen={loading} text={message} onClose={handleClose} /></div> : <>
                 <div className='scroll'>
                     <div className='exit-btn-wrapper'>
                         <button className='exit-btn' onClick={logout}>выход</button>
@@ -204,13 +185,11 @@ function Data({ logout }) {
                                     ))}
                                     <TableCell>
                                         {changeId ? <><Button onClick={handleChange}>Save</Button></> : <Button onClick={handleAddRow}>Add</Button>}
-
                                     </TableCell>
                                 </TableRow>
                             </TableBody>
                         </Table>
                     </TableContainer>
-
                 </div>
             </>}
         </div>
